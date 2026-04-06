@@ -1,0 +1,65 @@
+# GPU-optimized configuration for fast training
+
+# Model architecture
+model:
+  sentence_encoder:
+    model_name: "roberta-base"
+    frozen: true  # Keep frozen for speed
+    pooling: "mean"
+
+  paragraph_transformer:
+    d_model: 768
+    nhead: 8
+    num_layers: 4
+    dim_feedforward: 2048
+    dropout: 0.1
+
+  projection:
+    hidden_dim: 1024
+    output_dim: 512
+    dropout: 0.1
+
+# Loss configuration
+loss:
+  lambda_sigreg: 0.1
+  sigreg:
+    num_projections: 32
+    projection_dim: 128
+
+# Data
+data:
+  min_sentences: 3
+  max_sentences: 10
+  max_tokens_per_sentence: 64
+  prefer_interior_mask: true
+  interior_prob: 0.8
+
+# Training - OPTIMIZED FOR GPU
+training:
+  batch_size: 64  # INCREASED from 16 for GPU utilization
+  num_epochs: 10
+  gradient_clip: 1.0
+
+  # Learning rates
+  lr_sentence_encoder: 1.0e-5
+  lr_rest: 1.0e-4
+
+  # Scheduler
+  warmup_steps: 500
+  scheduler: "cosine"
+
+  # Logging
+  log_every: 10  # More frequent for faster feedback
+  eval_every: 500
+  save_every: 1000
+
+# Evaluation
+evaluation:
+  recall_k: [1, 5, 10]
+  num_candidates: 20
+
+# Paths
+paths:
+  data_dir: "./data"
+  checkpoint_dir: "./checkpoints"
+  log_dir: "./logs"

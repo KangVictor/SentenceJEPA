@@ -103,10 +103,34 @@ training:
 - Loss should decrease over time
 - Recall@1 should increase (>0.5 is good, >0.7 is great)
 
+## GPU Optimization
+
+```bash
+# Check optimal batch size
+python scripts/profile_training.py
+
+# Use GPU-optimized config (4x faster)
+python scripts/train_hf.py --config configs/gpu_optimized.yaml --device cuda
+
+# Preprocess dataset (10x faster, run once)
+python scripts/preprocess_dataset.py \
+    --input /path/to/dataset \
+    --output /path/to/processed.pkl \
+    --max-samples 100000
+
+# Train on preprocessed (FAST!)
+python scripts/train_hf.py \
+    --dataset preprocessed \
+    --dataset-path /path/to/processed.pkl \
+    --config configs/gpu_optimized.yaml
+```
+
 ## Troubleshooting
 
 | Problem | Solution |
 |---------|----------|
+| **GPU only 2GB used** | Use `configs/gpu_optimized.yaml` (batch 64) |
+| **Training very slow** | Preprocess dataset first |
 | CUDA OOM | Reduce `batch_size` in config |
 | Training slow | Use `--device cuda`, increase `batch_size` |
 | Import error | `pip install -r requirements.txt` |

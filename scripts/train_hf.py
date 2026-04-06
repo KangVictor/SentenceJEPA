@@ -80,6 +80,40 @@ def get_dataset(args, config):
             max_samples=args.max_samples,
         )
 
+    elif args.dataset == 'preprocessed':
+        if not args.dataset_path:
+            raise ValueError("Must provide --dataset-path for preprocessed dataset")
+
+        import pickle
+        print(f"Loading preprocessed dataset from: {args.dataset_path}")
+
+        with open(args.dataset_path, 'rb') as f:
+            dataset = pickle.load(f)
+
+        print(f"✓ Loaded {len(dataset)} preprocessed paragraphs")
+
+        # Load metadata if available
+        metadata_path = args.dataset_path + '.metadata'
+        from pathlib import Path
+        if Path(metadata_path).exists():
+            with open(metadata_path, 'rb') as f:
+                metadata = pickle.load(f)
+            print(f"  Original samples: {metadata.get('total_samples_processed', 'N/A')}")
+            print(f"  Min sentences: {metadata.get('min_sentences', 'N/A')}")
+            print(f"  Max sentences: {metadata.get('max_sentences', 'N/A')}")
+
+        # Wrap in a simple dataset class
+        from torch.utils.data import Dataset as TorchDataset
+        class PreprocessedDataset(TorchDataset):
+            def __init__(self, data):
+                self.data = data
+            def __len__(self):
+                return len(self.data)
+            def __getitem__(self, idx):
+                return self.data[idx]
+
+        dataset = PreprocessedDataset(dataset)
+
     elif args.dataset == 'from-disk':
         if not args.dataset_path:
             raise ValueError("Must provide --dataset-path for from-disk dataset")
@@ -135,7 +169,7 @@ def main():
 
     # Dataset selection
     parser.add_argument('--dataset', type=str, required=True,
-                        choices=['wikipedia', 'c4', 'bookcorpus', 'custom', 'from-disk'],
+                        choices=['wikipedia', 'c4', 'bookcorpus', 'custom', 'from-disk', 'preprocessed'],
                         help='Which HuggingFace dataset to use')
 
     # General dataset options
