@@ -6,6 +6,7 @@ from .hf_dataset import (
     load_wikipedia_dataset,
     load_c4_dataset,
     load_bookcorpus_dataset,
+    load_from_disk_dataset,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     'load_wikipedia_dataset',
     'load_c4_dataset',
     'load_bookcorpus_dataset',
+    'load_from_disk_dataset',
 ]

@@ -114,9 +114,12 @@ python scripts/train_hf.py --dataset wikipedia --streaming --max-samples 10000
 
 # Train on C4 (large scale)
 python scripts/train_hf.py --dataset c4 --streaming --config configs/large_scale.yaml
+
+# Train on pre-downloaded dataset (offline mode)
+python scripts/train_hf.py --dataset from-disk --dataset-path "./datasets/my_data"
 ```
 
-See **[HuggingFace Guide](HUGGINGFACE_GUIDE.md)** for more options (C4, BookCorpus, custom datasets).
+See **[HuggingFace Guide](HUGGINGFACE_GUIDE.md)** for more options (C4, BookCorpus, custom datasets, offline training).
 
 **Training options:**
 - `--config`: Path to configuration file (default: `configs/base.yaml`)
@@ -299,7 +302,16 @@ python scripts/train_hf.py --dataset bookcorpus --streaming
 
 # Any custom HuggingFace dataset
 python scripts/train_hf.py --dataset custom --hf-name "username/dataset"
+
+# Pre-downloaded dataset (offline mode)
+python scripts/train_hf.py --dataset from-disk --dataset-path "/path/to/dataset"
 ```
+
+**Offline Training:** Download datasets once and reuse them! See **[Offline Training Guide](OFFLINE_TRAINING.md)** for:
+- Working without internet after initial download
+- Google Colab with Drive persistence
+- Sharing datasets with your team
+- Faster experimentation (no re-downloading)
 
 ### Large-Scale Training
 

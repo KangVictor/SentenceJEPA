@@ -346,6 +346,63 @@ def load_bookcorpus_dataset(
         )
 
 
+def load_from_disk_dataset(
+    dataset_path: str,
+    text_column: str = 'text',
+    min_sentences: int = 3,
+    max_sentences: Optional[int] = 10,
+    max_samples: Optional[int] = None,
+    use_streaming: bool = False,
+):
+    """
+    Load a pre-downloaded HuggingFace dataset from disk.
+
+    Use this when you've already downloaded a dataset with:
+        dataset.save_to_disk("/path/to/dataset")
+
+    Or when loading from:
+        dataset = load_from_disk("/path/to/dataset")
+
+    Args:
+        dataset_path: Path to the saved dataset directory
+        text_column: Name of text column
+        min_sentences: Minimum sentences per paragraph
+        max_sentences: Maximum sentences per paragraph
+        max_samples: Maximum samples to use (None = all)
+        use_streaming: Treat as streaming (useful for very large datasets)
+
+    Returns:
+        HFParagraphDataset or HFParagraphDatasetMapStyle instance
+    """
+    from datasets import load_from_disk
+
+    print(f"Loading dataset from disk: {dataset_path}")
+    hf_dataset = load_from_disk(dataset_path)
+
+    print(f"Dataset info:")
+    print(f"  Total samples: {len(hf_dataset) if hasattr(hf_dataset, '__len__') else 'Unknown (streaming)'}")
+    print(f"  Features: {hf_dataset.features if hasattr(hf_dataset, 'features') else 'N/A'}")
+
+    if use_streaming:
+        # Treat as streaming even though it's on disk
+        # Useful for very large datasets
+        return HFParagraphDataset(
+            dataset=hf_dataset,
+            text_column=text_column,
+            min_sentences=min_sentences,
+            max_sentences=max_sentences,
+            max_samples=max_samples,
+        )
+    else:
+        # Load into memory (map-style)
+        return HFParagraphDatasetMapStyle(
+            dataset=hf_dataset,
+            text_column=text_column,
+            min_sentences=min_sentences,
+            max_sentences=max_sentences,
+        )
+
+
 if __name__ == "__main__":
     # Test with a small sample
     print("Testing HuggingFace dataset wrapper...")

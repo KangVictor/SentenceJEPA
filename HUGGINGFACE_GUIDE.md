@@ -193,6 +193,30 @@ python scripts/train_hf.py \
     --streaming
 ```
 
+### Using Pre-Downloaded Datasets
+
+If you've already downloaded a dataset to disk:
+
+```bash
+# Step 1: Download and save once
+python examples/download_and_save_dataset.py \
+    --dataset wikipedia \
+    --output ./datasets/wiki_10k \
+    --max-samples 10000
+
+# Step 2: Train (can reuse multiple times!)
+python scripts/train_hf.py \
+    --dataset from-disk \
+    --dataset-path ./datasets/wiki_10k
+```
+
+**Benefits:**
+- ✅ Work offline
+- ✅ Faster startup (no download time)
+- ✅ Reuse across experiments
+- ✅ Share with teammates
+- ✅ Perfect for limited bandwidth
+
 ### Programmatic Usage
 
 ```python
@@ -333,7 +357,36 @@ python scripts/train_hf.py \
     --config configs/large_scale.yaml
 ```
 
-### Example 6: Mixed Datasets
+### Example 6: From Pre-Downloaded Dataset
+
+Work offline or reuse downloaded datasets:
+
+```bash
+# Step 1: Download once (requires internet)
+python examples/download_and_save_dataset.py \
+    --dataset wikipedia \
+    --output ./datasets/wiki_10k \
+    --max-samples 10000
+
+# Step 2: Train (works offline!)
+python scripts/train_hf.py \
+    --dataset from-disk \
+    --dataset-path ./datasets/wiki_10k
+
+# Step 3: Train again with different config (no re-download!)
+python scripts/train_hf.py \
+    --dataset from-disk \
+    --dataset-path ./datasets/wiki_10k \
+    --config configs/large_scale.yaml
+```
+
+**Perfect for:**
+- Google Colab (save to Drive, reuse across sessions)
+- Limited bandwidth environments
+- Offline development
+- Sharing datasets with team
+
+### Example 7: Mixed Datasets
 
 Train on multiple datasets sequentially:
 

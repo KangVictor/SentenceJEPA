@@ -47,6 +47,7 @@ python scripts/train.py --data path/to/your_data.txt
 | **C4** | `python scripts/train_hf.py --dataset c4 --streaming --config configs/large_scale.yaml` |
 | **BookCorpus** | `python scripts/train_hf.py --dataset bookcorpus --streaming` |
 | **Custom** | `python scripts/train_hf.py --dataset custom --hf-name "user/dataset"` |
+| **From disk** | `python scripts/train_hf.py --dataset from-disk --dataset-path "./datasets/my_data"` |
 | **Multilingual** | `python scripts/train_hf.py --dataset wikipedia --wiki-lang es --streaming` |
 
 ### With GPU

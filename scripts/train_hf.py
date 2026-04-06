@@ -30,6 +30,7 @@ from data.hf_dataset import (
     load_wikipedia_dataset,
     load_c4_dataset,
     load_bookcorpus_dataset,
+    load_from_disk_dataset,
     HFParagraphDataset,
     HFParagraphDatasetMapStyle,
 )
@@ -79,6 +80,19 @@ def get_dataset(args, config):
             max_samples=args.max_samples,
         )
 
+    elif args.dataset == 'from-disk':
+        if not args.dataset_path:
+            raise ValueError("Must provide --dataset-path for from-disk dataset")
+
+        dataset = load_from_disk_dataset(
+            dataset_path=args.dataset_path,
+            text_column=args.text_column or 'text',
+            min_sentences=min_sentences,
+            max_sentences=max_sentences,
+            max_samples=args.max_samples,
+            use_streaming=args.streaming,
+        )
+
     elif args.dataset == 'custom':
         if not args.hf_name:
             raise ValueError("Must provide --hf-name for custom dataset")
@@ -121,7 +135,7 @@ def main():
 
     # Dataset selection
     parser.add_argument('--dataset', type=str, required=True,
-                        choices=['wikipedia', 'c4', 'bookcorpus', 'custom'],
+                        choices=['wikipedia', 'c4', 'bookcorpus', 'custom', 'from-disk'],
                         help='Which HuggingFace dataset to use')
 
     # General dataset options
@@ -143,6 +157,10 @@ def main():
                         help='Name of text column in custom dataset')
     parser.add_argument('--split', type=str, default='train',
                         help='Dataset split to use')
+
+    # From-disk dataset options
+    parser.add_argument('--dataset-path', type=str, default=None,
+                        help='Path to pre-downloaded dataset directory (for from-disk)')
 
     # Training options
     parser.add_argument('--config', type=str, default='configs/base.yaml',
