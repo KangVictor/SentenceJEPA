@@ -90,19 +90,33 @@ SentenceJEPA/
 
 ## Quick Start
 
-### 1. Create sample training data
+### Option 1: Train on Sample Data
 
 ```bash
+# Create sample data
 python scripts/train.py --create-sample-data --data data/sample_data.txt
-```
 
-This creates a sample dataset with AI/ML-related paragraphs.
-
-### 2. Train the model
-
-```bash
+# Train
 python scripts/train.py --config configs/base.yaml --data data/sample_data.txt
 ```
+
+### Option 2: Train on HuggingFace Datasets (Recommended)
+
+```bash
+# Install datasets library
+pip install datasets
+
+# Test HuggingFace integration
+python test_hf_datasets.py
+
+# Train on Wikipedia
+python scripts/train_hf.py --dataset wikipedia --streaming --max-samples 10000
+
+# Train on C4 (large scale)
+python scripts/train_hf.py --dataset c4 --streaming --config configs/large_scale.yaml
+```
+
+See **[HuggingFace Guide](HUGGINGFACE_GUIDE.md)** for more options (C4, BookCorpus, custom datasets).
 
 **Training options:**
 - `--config`: Path to configuration file (default: `configs/base.yaml`)
@@ -267,6 +281,24 @@ dataset = ParagraphDataset.from_list(
 )
 
 # Rest of training code...
+```
+
+### HuggingFace Datasets
+
+For training on popular datasets from HuggingFace Hub, see **[HuggingFace Guide](HUGGINGFACE_GUIDE.md)**:
+
+```bash
+# Wikipedia
+python scripts/train_hf.py --dataset wikipedia --streaming
+
+# C4 (Colossal Clean Crawled Corpus)
+python scripts/train_hf.py --dataset c4 --streaming
+
+# BookCorpus
+python scripts/train_hf.py --dataset bookcorpus --streaming
+
+# Any custom HuggingFace dataset
+python scripts/train_hf.py --dataset custom --hf-name "username/dataset"
 ```
 
 ### Large-Scale Training
