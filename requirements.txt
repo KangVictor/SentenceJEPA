@@ -1,0 +1,22 @@
+# Core dependencies
+torch>=2.0.0
+transformers>=4.30.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# Data processing
+spacy>=3.5.0
+pyyaml>=6.0
+
+# Training utilities
+tqdm>=4.65.0
+
+# Optional but recommended
+# tensorboard>=2.13.0  # For logging
+# wandb>=0.15.0  # Alternative logging
+
+# For development/testing
+pytest>=7.3.0
+
+# Note: To use spaCy for sentence splitting, install the model:
+# python -m spacy download en_core_web_sm

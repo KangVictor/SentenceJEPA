@@ -1,0 +1,65 @@
+# Base configuration for Sentence JEPA
+
+# Model architecture
+model:
+  sentence_encoder:
+    model_name: "roberta-base"  # HuggingFace model
+    frozen: true  # Freeze encoder weights
+    pooling: "mean"  # mean pooling over tokens
+
+  paragraph_transformer:
+    d_model: 768  # Dimension (matches RoBERTa)
+    nhead: 8
+    num_layers: 4
+    dim_feedforward: 2048
+    dropout: 0.1
+
+  projection:
+    hidden_dim: 1024
+    output_dim: 512  # Final embedding dimension
+    dropout: 0.1
+
+# Loss configuration
+loss:
+  lambda_sigreg: 0.1  # Weight for SIGReg loss
+  sigreg:
+    num_projections: 32  # K projections
+    projection_dim: 128  # Dimension of random projections
+
+# Data
+data:
+  min_sentences: 3  # Minimum sentences per paragraph
+  max_sentences: 10  # Maximum sentences to keep
+  max_tokens_per_sentence: 64  # Max tokens per sentence
+  prefer_interior_mask: true  # Prefer masking interior sentences
+  interior_prob: 0.8  # Probability of masking interior vs edge
+
+# Training
+training:
+  batch_size: 16
+  num_epochs: 20
+  gradient_clip: 1.0
+
+  # Learning rates
+  lr_sentence_encoder: 1.0e-5  # If not frozen
+  lr_rest: 1.0e-4
+
+  # Scheduler
+  warmup_steps: 500
+  scheduler: "cosine"  # cosine annealing
+
+  # Logging
+  log_every: 50
+  eval_every: 500
+  save_every: 1000
+
+# Evaluation
+evaluation:
+  recall_k: [1, 5, 10]  # Compute Recall@K
+  num_candidates: 20  # Number of candidate sentences for retrieval
+
+# Paths
+paths:
+  data_dir: "./data"
+  checkpoint_dir: "./checkpoints"
+  log_dir: "./logs"
