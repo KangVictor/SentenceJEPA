@@ -55,6 +55,31 @@ python scripts/train.py --data path/to/your_data.txt
 python scripts/train_hf.py --dataset wikipedia --streaming --device cuda
 ```
 
+## Resume Training / Fine-tuning
+
+```bash
+# Resume training (exact same state)
+python scripts/resume_training.py \
+    --checkpoint checkpoints/checkpoint_step_5000.pt \
+    --config configs/base.yaml \
+    --data-path /path/to/data
+
+# Fine-tune on new data
+python scripts/resume_training.py \
+    --checkpoint checkpoints/best_model.pt \
+    --config configs/base.yaml \
+    --data-path /path/to/new_data \
+    --reset-optimizer \
+    --new-lr 5e-5
+
+# Train for more epochs
+python scripts/resume_training.py \
+    --checkpoint checkpoints/best_model.pt \
+    --config configs/base.yaml \
+    --data-path /path/to/data \
+    --additional-epochs 10
+```
+
 ## Evaluation
 
 ```bash
@@ -62,6 +87,15 @@ python scripts/eval_retrieval.py \
     --checkpoint checkpoints/best_model.pt \
     --config configs/base.yaml \
     --data data/your_data.txt
+```
+
+## Use Trained Model
+
+```bash
+# Generate embeddings and find similar sentences
+python scripts/use_model.py \
+    --checkpoint checkpoints/best_model.pt \
+    --config configs/base.yaml
 ```
 
 ## Configuration
