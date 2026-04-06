@@ -58,17 +58,33 @@ python scripts/train_hf.py --dataset wikipedia --streaming --device cuda
 ## Resume Training / Fine-tuning
 
 ```bash
-# Resume training (exact same state)
+# Resume training (exact same state) - from disk
 python scripts/resume_training.py \
     --checkpoint checkpoints/checkpoint_step_5000.pt \
     --config configs/base.yaml \
     --data-path /path/to/data
+
+# Resume training with preprocessed pickle dataset (FAST!)
+python scripts/resume_training.py \
+    --checkpoint checkpoints/checkpoint_step_5000.pt \
+    --config configs/base.yaml \
+    --dataset-type preprocessed \
+    --data-path /path/to/processed.pkl
 
 # Fine-tune on new data
 python scripts/resume_training.py \
     --checkpoint checkpoints/best_model.pt \
     --config configs/base.yaml \
     --data-path /path/to/new_data \
+    --reset-optimizer \
+    --new-lr 5e-5
+
+# Fine-tune with preprocessed dataset
+python scripts/resume_training.py \
+    --checkpoint checkpoints/best_model.pt \
+    --config configs/base.yaml \
+    --dataset-type preprocessed \
+    --data-path /path/to/new_data.pkl \
     --reset-optimizer \
     --new-lr 5e-5
 

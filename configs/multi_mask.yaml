@@ -33,10 +33,9 @@ data:
   max_tokens_per_sentence: 64  # Max tokens per sentence
   prefer_interior_mask: true  # Prefer masking interior sentences
   interior_prob: 0.8  # Probability of masking interior vs edge
-  mask_ratio: null  # Fraction of sentences to mask per paragraph (e.g., 0.3 = 30%)
-                    # If null, masks only 1 sentence per paragraph (original behavior)
-                    # If set (e.g., 0.3), creates multiple training examples per paragraph
-                    # Example: 6-sentence paragraph with mask_ratio=0.3 creates 2 training examples
+  mask_ratio: 0.3  # Fraction of sentences to mask per paragraph (30%)
+                   # Creates multiple training examples per paragraph
+                   # Example: 6-sentence paragraph creates 2 training examples (masking different sentences)
 
 # Training
 training:

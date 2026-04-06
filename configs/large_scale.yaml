@@ -36,7 +36,7 @@ data:
 
 # Training
 training:
-  batch_size: 64  # Increased from 16 (adjust based on GPU memory)
+  batch_size: 2048  # Increased from 16 (adjust based on GPU memory)
   num_epochs: 5   # Fewer epochs with more data
   gradient_clip: 1.0
 

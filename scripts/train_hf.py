@@ -247,6 +247,7 @@ def main():
         max_tokens_per_sentence=config['data']['max_tokens_per_sentence'],
         prefer_interior_mask=config['data']['prefer_interior_mask'],
         interior_prob=config['data']['interior_prob'],
+        mask_ratio=config['data'].get('mask_ratio', None),
     )
 
     # Create dataloaders

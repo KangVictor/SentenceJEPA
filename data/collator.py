@@ -26,6 +26,7 @@ class SentenceJEPACollator:
         max_tokens_per_sentence: int = 64,
         prefer_interior_mask: bool = True,
         interior_prob: float = 0.8,
+        mask_ratio: float = None,
     ):
         """
         Args:
@@ -33,11 +34,15 @@ class SentenceJEPACollator:
             max_tokens_per_sentence: Maximum tokens per sentence
             prefer_interior_mask: Prefer masking interior sentences over edges
             interior_prob: Probability of masking interior vs edge sentence
+            mask_ratio: Fraction of sentences to mask (e.g., 0.3 = 30%).
+                       If None, masks only 1 sentence per paragraph (original behavior).
+                       If set, expands batch by creating multiple training examples.
         """
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer_name)
         self.max_tokens_per_sentence = max_tokens_per_sentence
         self.prefer_interior_mask = prefer_interior_mask
         self.interior_prob = interior_prob
+        self.mask_ratio = mask_ratio
 
     def __call__(self, batch: List[Dict]) -> Dict[str, torch.Tensor]:
         """
@@ -49,12 +54,33 @@ class SentenceJEPACollator:
 
         Returns:
             collated: {
-                'input_ids': [B, S, T] - token IDs
-                'attention_mask': [B, S, T] - token attention mask
-                'sentence_mask': [B, S] - sentence validity mask
-                'mask_idx': [B] - index of masked sentence per batch
+                'input_ids': [B', S, T] - token IDs (B' may be > B if mask_ratio is set)
+                'attention_mask': [B', S, T] - token attention mask
+                'sentence_mask': [B', S] - sentence validity mask
+                'mask_idx': [B'] - index of masked sentence per batch
             }
         """
+        # Expand batch if mask_ratio is set
+        if self.mask_ratio is not None:
+            import math
+            expanded_batch = []
+            for item in batch:
+                n_sents = len(item['sentences'])
+                # Calculate how many sentences to mask (use ceiling to get at least mask_ratio%)
+                num_to_mask = max(1, math.ceil(n_sents * self.mask_ratio))
+
+                # Select which sentences to mask
+                mask_candidates = self._select_multiple_mask_indices(n_sents, num_to_mask)
+
+                # Create one training example for each masked sentence
+                for mask_idx in mask_candidates:
+                    expanded_batch.append({
+                        'sentences': item['sentences'],
+                        'paragraph': item['paragraph'],
+                        '_mask_idx': mask_idx,  # Pre-selected mask index
+                    })
+            batch = expanded_batch
+
         batch_size = len(batch)
 
         # Get sentences for each item
@@ -83,8 +109,12 @@ class SentenceJEPACollator:
 
         # Select masked sentence index for each item
         mask_indices = []
-        for n_sents in num_sentences:
-            mask_idx = self._select_mask_index(n_sents)
+        for i, n_sents in enumerate(num_sentences):
+            # Use pre-selected mask if available (from mask_ratio expansion)
+            if '_mask_idx' in batch[i]:
+                mask_idx = batch[i]['_mask_idx']
+            else:
+                mask_idx = self._select_mask_index(n_sents)
             mask_indices.append(mask_idx)
 
         # Pad and collate
@@ -193,6 +223,52 @@ class SentenceJEPACollator:
         else:
             # Mask any sentence
             return random.randint(0, num_sentences - 1)
+
+    def _select_multiple_mask_indices(self, num_sentences: int, num_to_mask: int) -> List[int]:
+        """
+        Select multiple sentences to mask.
+
+        Args:
+            num_sentences: Number of sentences in paragraph
+            num_to_mask: Number of sentences to mask
+
+        Returns:
+            mask_indices: List of indices to mask
+        """
+        if num_sentences <= 2:
+            # If only 2 sentences, mask one randomly
+            return [random.randint(0, num_sentences - 1)]
+
+        # Ensure we don't try to mask more sentences than available
+        num_to_mask = min(num_to_mask, num_sentences)
+
+        if self.prefer_interior_mask:
+            # Prefer masking interior sentences
+            interior_indices = list(range(1, num_sentences - 1))
+            edge_indices = [0, num_sentences - 1]
+
+            # Calculate how many interior vs edge to mask
+            num_interior_available = len(interior_indices)
+            num_interior_to_mask = min(num_to_mask, num_interior_available)
+
+            # Randomly sample interior sentences
+            if num_interior_to_mask > 0:
+                selected_interior = random.sample(interior_indices, num_interior_to_mask)
+            else:
+                selected_interior = []
+
+            # If we need more, sample from edges
+            num_edge_to_mask = num_to_mask - num_interior_to_mask
+            if num_edge_to_mask > 0:
+                selected_edges = random.sample(edge_indices, min(num_edge_to_mask, len(edge_indices)))
+            else:
+                selected_edges = []
+
+            return sorted(selected_interior + selected_edges)
+        else:
+            # Randomly sample any sentences
+            all_indices = list(range(num_sentences))
+            return sorted(random.sample(all_indices, num_to_mask))
 
 
 if __name__ == "__main__":
