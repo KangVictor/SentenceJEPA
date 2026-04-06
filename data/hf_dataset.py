@@ -379,9 +379,58 @@ def load_from_disk_dataset(
     print(f"Loading dataset from disk: {dataset_path}")
     hf_dataset = load_from_disk(dataset_path)
 
-    print(f"Dataset info:")
+    # Check if it's a DatasetDict (has multiple splits)
+    if hasattr(hf_dataset, 'keys'):
+        print(f"\n  Detected DatasetDict with splits: {list(hf_dataset.keys())}")
+        print(f"  Using 'train' split by default...")
+
+        if 'train' in hf_dataset.keys():
+            hf_dataset = hf_dataset['train']
+        else:
+            # Use first available split
+            first_split = list(hf_dataset.keys())[0]
+            print(f"  'train' split not found, using '{first_split}' instead")
+            hf_dataset = hf_dataset[first_split]
+
+    print(f"\nDataset info:")
     print(f"  Total samples: {len(hf_dataset) if hasattr(hf_dataset, '__len__') else 'Unknown (streaming)'}")
-    print(f"  Features: {hf_dataset.features if hasattr(hf_dataset, 'features') else 'N/A'}")
+
+    # Debug: Check dataset structure
+    if hasattr(hf_dataset, 'features'):
+        print(f"  Features: {hf_dataset.features}")
+    else:
+        print(f"  Features: N/A")
+
+    # Check if dataset has the text column
+    if hasattr(hf_dataset, 'column_names'):
+        print(f"  Column names: {hf_dataset.column_names}")
+        if text_column not in hf_dataset.column_names:
+            print(f"\n  WARNING: Column '{text_column}' not found!")
+            print(f"  Available columns: {hf_dataset.column_names}")
+            print(f"  Please use --text-column to specify the correct column name.")
+            raise ValueError(f"Column '{text_column}' not found in dataset. Available: {hf_dataset.column_names}")
+
+    # Special handling: If dataset appears to be a single element or has wrong structure
+    if hasattr(hf_dataset, '__len__') and len(hf_dataset) == 1:
+        print(f"\n  Note: Dataset has only 1 sample. Checking structure...")
+        try:
+            sample = hf_dataset[0]
+            if isinstance(sample, str):
+                print(f"  ERROR: Dataset contains strings, not dictionaries!")
+                print(f"  The dataset at this path may not be in the correct format.")
+                print(f"  Expected format: Dataset with dictionary items containing a '{text_column}' field")
+                raise ValueError(f"Dataset has incorrect structure. Expected dict with '{text_column}' field, got string.")
+            elif isinstance(sample, dict):
+                if text_column not in sample:
+                    print(f"  ERROR: Sample doesn't have '{text_column}' field!")
+                    print(f"  Available fields: {list(sample.keys())}")
+                    raise ValueError(f"Sample missing '{text_column}' field. Available: {list(sample.keys())}")
+                else:
+                    print(f"  Structure looks OK, but only 1 sample will be processed.")
+        except Exception as e:
+            if "incorrect structure" in str(e) or "missing" in str(e):
+                raise
+            print(f"  Could not verify structure: {e}")
 
     if use_streaming:
         # Treat as streaming even though it's on disk
