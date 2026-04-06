@@ -88,9 +88,10 @@ class SentenceJEPACollator:
             mask_indices.append(mask_idx)
 
         # Pad and collate
-        input_ids_batch = []
-        attention_mask_batch = []
-        sentence_mask_batch = []
+        # First, collect all tokenized data and find global max_tokens
+        all_input_ids = []
+        all_attention_masks = []
+        all_sentence_masks = []
 
         for i in range(batch_size):
             n_sents = num_sentences[i]
@@ -115,14 +116,27 @@ class SentenceJEPACollator:
                     attention_mask_padded.append(torch.tensor([0]))
                     sentence_mask.append(0)
 
-            # Pad tokens within sentences to same length
-            max_tokens = max(len(ids) for ids in input_ids_padded)
-            max_tokens = min(max_tokens, self.max_tokens_per_sentence)
+            all_input_ids.append(input_ids_padded)
+            all_attention_masks.append(attention_mask_padded)
+            all_sentence_masks.append(sentence_mask)
 
+        # Find global max_tokens across entire batch
+        max_tokens = 0
+        for input_ids_list in all_input_ids:
+            for ids in input_ids_list:
+                max_tokens = max(max_tokens, len(ids))
+        max_tokens = min(max_tokens, self.max_tokens_per_sentence)
+
+        # Now pad everything to the same max_tokens
+        input_ids_batch = []
+        attention_mask_batch = []
+        sentence_mask_batch = []
+
+        for i in range(batch_size):
             input_ids_padded_uniform = []
             attention_mask_padded_uniform = []
 
-            for ids, mask in zip(input_ids_padded, attention_mask_padded):
+            for ids, mask in zip(all_input_ids[i], all_attention_masks[i]):
                 # Truncate if needed
                 ids = ids[:max_tokens]
                 mask = mask[:max_tokens]
@@ -140,7 +154,7 @@ class SentenceJEPACollator:
             # Stack to [S, T]
             input_ids_item = torch.stack(input_ids_padded_uniform)  # [S, T]
             attention_mask_item = torch.stack(attention_mask_padded_uniform)  # [S, T]
-            sentence_mask_item = torch.tensor(sentence_mask)  # [S]
+            sentence_mask_item = torch.tensor(all_sentence_masks[i])  # [S]
 
             input_ids_batch.append(input_ids_item)
             attention_mask_batch.append(attention_mask_item)

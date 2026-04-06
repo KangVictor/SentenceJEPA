@@ -35,20 +35,31 @@ Loss = normalized_MSE(z_pred, z_target) + λ * SIGReg(z_target)
 
 ## Installation
 
-### 1. Clone and setup
+### Quick Setup (Recommended)
 
 ```bash
 cd SentenceJEPA
-pip install -r requirements.txt
+./setup.sh
 ```
 
-### 2. (Optional) Install spaCy model for better sentence splitting
+This script will:
+- Create a virtual environment (`.venv`)
+- Install all dependencies
+- Optionally install spaCy model for sentence splitting
+
+### Manual Setup
 
 ```bash
+cd SentenceJEPA
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Optional: Install spaCy model for better sentence splitting
 python -m spacy download en_core_web_sm
 ```
 
-If you skip this, the code will fall back to regex-based sentence splitting.
+If you skip the spaCy model, the code will fall back to regex-based sentence splitting.
 
 ## Project Structure
 
@@ -257,6 +268,15 @@ dataset = ParagraphDataset.from_list(
 
 # Rest of training code...
 ```
+
+### Large-Scale Training
+
+For datasets with millions of paragraphs, see the **[Large Dataset Guide](LARGE_DATASET_GUIDE.md)** which covers:
+- Streaming datasets for memory efficiency
+- Multi-GPU and distributed training
+- Mixed precision (FP16) training
+- Gradient accumulation strategies
+- Performance optimization tips
 
 ## Extending the Model
 

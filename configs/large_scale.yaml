@@ -1,0 +1,65 @@
+# Configuration for large-scale training (100K+ paragraphs)
+
+# Model architecture
+model:
+  sentence_encoder:
+    model_name: "roberta-base"
+    frozen: true  # Keep frozen for efficiency
+    pooling: "mean"
+
+  paragraph_transformer:
+    d_model: 768
+    nhead: 8
+    num_layers: 6  # Increased from 4
+    dim_feedforward: 3072  # Increased from 2048
+    dropout: 0.1
+
+  projection:
+    hidden_dim: 1536  # Increased from 1024
+    output_dim: 512
+    dropout: 0.1
+
+# Loss configuration
+loss:
+  lambda_sigreg: 0.1
+  sigreg:
+    num_projections: 64  # Increased from 32
+    projection_dim: 128
+
+# Data
+data:
+  min_sentences: 3
+  max_sentences: 10
+  max_tokens_per_sentence: 64
+  prefer_interior_mask: true
+  interior_prob: 0.8
+
+# Training
+training:
+  batch_size: 64  # Increased from 16 (adjust based on GPU memory)
+  num_epochs: 5   # Fewer epochs with more data
+  gradient_clip: 1.0
+
+  # Learning rates
+  lr_sentence_encoder: 1.0e-5
+  lr_rest: 1.0e-4
+
+  # Scheduler
+  warmup_steps: 2000  # Increased from 500 for large datasets
+  scheduler: "cosine"
+
+  # Logging
+  log_every: 100
+  eval_every: 1000
+  save_every: 2000
+
+# Evaluation
+evaluation:
+  recall_k: [1, 5, 10]
+  num_candidates: 20
+
+# Paths
+paths:
+  data_dir: "./data"
+  checkpoint_dir: "./checkpoints"
+  log_dir: "./logs"

@@ -5,16 +5,24 @@ Get up and running with Sentence JEPA in 5 minutes!
 ## Setup (2 minutes)
 
 ```bash
-# 1. Install dependencies
+# Quick setup (recommended)
+./setup.sh
+
+# Or manually:
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 
-# 2. (Optional) Install spaCy model for better sentence splitting
+# Optional: Install spaCy model for better sentence splitting
 python -m spacy download en_core_web_sm
 ```
 
 ## Test the Pipeline (1 minute)
 
 ```bash
+# Activate venv if not already active
+source .venv/bin/activate
+
 # Verify everything works
 python test_pipeline.py
 ```
